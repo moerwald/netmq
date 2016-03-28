@@ -29,26 +29,8 @@ namespace NetMQ.Monitoring
 
         private readonly ManualResetEvent m_isStoppedEvent = new ManualResetEvent(true);
 
-        [Obsolete("Use overload that takes SocketEvents (plural)")]
-        public NetMQMonitor([NotNull] NetMQContext context, [NotNull] NetMQSocket monitoredSocket, [NotNull] string endpoint, SocketEvent eventsToMonitor)
-            : this(context, monitoredSocket, endpoint, (SocketEvents)eventsToMonitor)
-        {}
-
-        [Obsolete("Use non context version")]
-        public NetMQMonitor([NotNull] NetMQContext context, [NotNull] NetMQSocket monitoredSocket, [NotNull] string endpoint, SocketEvents eventsToMonitor)
-        {
-            Endpoint = endpoint;
-            Timeout = TimeSpan.FromSeconds(0.5);
-
-            monitoredSocket.Monitor(endpoint, eventsToMonitor);
-
-            m_monitoringSocket = context.CreatePairSocket();
-            m_monitoringSocket.Options.Linger = TimeSpan.Zero;
-            m_monitoringSocket.ReceiveReady += Handle;
-
-            m_ownsMonitoringSocket = true;
-        }
-
+        /// <summary>
+        /// </summary>
         public NetMQMonitor([NotNull] NetMQSocket monitoredSocket, [NotNull] string endpoint, SocketEvents eventsToMonitor)
         {
             Endpoint = endpoint;
@@ -241,6 +223,8 @@ namespace NetMQ.Monitoring
             }
         }
 
+        /// <summary>
+        /// </summary>
         public void AttachToPoller([NotNull] ISocketPollableCollection poller)
         {
             if (poller == null)
@@ -254,6 +238,8 @@ namespace NetMQ.Monitoring
             poller.Add(m_monitoringSocket);
         }
 
+        /// <summary>
+        /// </summary>
         public void DetachFromPoller()
         {
             if (m_attachedPoller == null)

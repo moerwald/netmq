@@ -9,15 +9,18 @@ using JetBrains.Annotations;
 using NetMQ.Core.Utils;
 #if !NET35
 using System.Threading.Tasks;
+using System.ComponentModel;
 #endif
 
 using Switch = NetMQ.Core.Utils.Switch;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// </summary>
     public sealed class NetMQPoller :
 #if !NET35
-        TaskScheduler,
+        TaskScheduler, ISynchronizeInvoke,
 #endif
         INetMQPoller, ISocketPollableCollection, IEnumerable, IDisposable
     {
@@ -73,6 +76,8 @@ namespace NetMQ
             get { return m_isSchedulerThread.Value; }
         }
 
+        /// <summary>
+        /// </summary>
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
             if (task == null)
@@ -100,6 +105,8 @@ namespace NetMQ
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// </summary>
         protected override void QueueTask(Task task)
         {
             if (task == null)
@@ -109,7 +116,7 @@ namespace NetMQ
             m_tasksQueue.Enqueue(task);
         }
 
-        private void Run(Action action)
+        private void Run([NotNull] Action action)
         {
             if (CanExecuteTaskInline)
                 action();
@@ -125,6 +132,8 @@ namespace NetMQ
 
         #endregion
 
+        /// <summary>
+        /// </summary>
         public NetMQPoller()
         {
             m_sockets.Add(((ISocketPollable)m_stopSignaler).Socket);
@@ -156,6 +165,8 @@ namespace NetMQ
 
         #region Add / Remove
 
+        /// <summary>
+        /// </summary>
         public void Add(ISocketPollable socket)
         {
             if (socket == null)
@@ -174,6 +185,8 @@ namespace NetMQ
             });
         }
 
+        /// <summary>
+        /// </summary>
         public void Add([NotNull] NetMQTimer timer)
         {
             if (timer == null)
@@ -183,6 +196,8 @@ namespace NetMQ
             Run(() => m_timers.Add(timer));
         }
 
+        /// <summary>
+        /// </summary>
         public void Add([NotNull] Socket socket, [NotNull] Action<Socket> callback)
         {
             if (socket == null)
@@ -200,6 +215,8 @@ namespace NetMQ
             });
         }
 
+        /// <summary>
+        /// </summary>
         public void Remove(ISocketPollable socket)
         {
             if (socket == null)
@@ -214,6 +231,8 @@ namespace NetMQ
             });
         }
 
+        /// <summary>
+        /// </summary>
         public void Remove([NotNull] NetMQTimer timer)
         {
             if (timer == null)
@@ -225,6 +244,8 @@ namespace NetMQ
             Run(() => m_timers.Remove(timer));
         }
 
+        /// <summary>
+        /// </summary>
         public void Remove([NotNull] Socket socket)
         {
             if (socket == null)
@@ -318,7 +339,7 @@ namespace NetMQ
                         }
                     }
 
-                    // Compute a timeout value - how many milliseconds from now that that earliest-timer will expire.
+                    // Compute a timeout value - how many milliseconds from now that the earliest-timer will expire.
                     var timeout = tickless - pollStart;
 
                     // Use zero to indicate it has already expired.
@@ -528,7 +549,7 @@ namespace NetMQ
                 m_switch.WaitForOff();
                 Debug.Assert(!IsRunning);
             }
-            
+
             m_stopSignaler.Dispose();
 #if !NET35
             m_tasksQueue.Dispose();
@@ -539,6 +560,40 @@ namespace NetMQ
 
             m_disposeState = (int)DisposeState.Disposed;
         }
+
+        #endregion
+
+        #region ISynchronizeInvoke
+
+#if !NET35
+        IAsyncResult ISynchronizeInvoke.BeginInvoke(Delegate method, object[] args)
+        {
+            var task = new Task<object>(() => method.DynamicInvoke(args));
+            task.Start(this);
+            return task;
+        }
+
+        object ISynchronizeInvoke.EndInvoke(IAsyncResult result)
+        {
+            var task = (Task<object>)result;
+            return task.Result;
+        }
+
+        object ISynchronizeInvoke.Invoke(Delegate method, object[] args)
+        {
+            if (CanExecuteTaskInline)
+                return method.DynamicInvoke(args);
+
+            var task = new Task<object>(() => method.DynamicInvoke(args));
+            task.Start(this);
+            return task.Result;
+        }
+
+        bool ISynchronizeInvoke.InvokeRequired
+        {
+            get { return !CanExecuteTaskInline; }
+        }
+#endif
 
         #endregion
 

@@ -13,19 +13,27 @@ namespace NetMQ
     [Serializable]
     public class NetMQException : Exception
     {
+        /// <summary>
+        /// </summary>
         public ErrorCode ErrorCode { get; private set; }
 
         #region Exception contract & serialisation
 
         // For discussion of this contract, see https://msdn.microsoft.com/en-us/library/ms182151.aspx
 
+        /// <summary>
+        /// </summary>
         public NetMQException()
         {}
 
+        /// <summary>
+        /// </summary>
         public NetMQException(string message)
             : base(message)
         {}
 
+        /// <summary>
+        /// </summary>
         public NetMQException(string message, Exception innerException)
             : base(message, innerException)
         {}
@@ -37,6 +45,8 @@ namespace NetMQ
             ErrorCode = (ErrorCode)info.GetInt32("ErrorCode");
         }
 
+        /// <summary>
+        /// </summary>
         [SecurityPermission(SecurityAction.Demand, SerializationFormatter = true)]
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
@@ -138,10 +148,6 @@ namespace NetMQ
         {
             switch (errorCode)
             {
-                case ErrorCode.TryAgain:
-#pragma warning disable 618
-                    return new AgainException(innerException, message);
-#pragma warning restore 618
                 case ErrorCode.ContextTerminated:
                     return new TerminatingException(innerException, message);
                 case ErrorCode.Invalid:
@@ -237,45 +243,6 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// AgainException is a NetMQException that is used within SocketBase.Send and SocketBase.Recv to signal failures
-    /// (as when the Send/Receive fails and DontWait is set or no timeout is specified)
-    /// and is raised within Sub.XSetSocketOption if sending the queued-message fails.
-    /// </summary>
-    [Serializable]
-    [Obsolete("AgainException is obsolete. Use TrySendFrame or TryReceive return values instead of catching this exception.")]
-    public class AgainException : NetMQException
-    {
-        /// <summary>
-        /// Create a new AgainException with a given inner-exception and message.
-        /// </summary>
-        /// <param name="innerException">an Exception for this new exception to contain and expose via its InnerException property</param>
-        /// <param name="message">the textual description of what gave rise to this exception, to expose via the Message property</param>
-        internal AgainException([CanBeNull] Exception innerException, [CanBeNull] string message)
-            : base(innerException, message, ErrorCode.TryAgain)
-        {
-        }
-
-        public AgainException([CanBeNull] string message)
-            : this(null, message)
-        {
-        }
-
-        /// <summary>
-        /// Create a new AgainException with no message nor inner-exception.
-        /// </summary>
-        public AgainException()
-            : this(null, null)
-        {
-        }
-
-        /// <summary>Constructor for serialisation.</summary>
-        protected AgainException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-        }
-    }
-
-    /// <summary>
     /// TerminatingException is a NetMQException that is used within SocketBase and Ctx to signal
     /// that you're making the mistake of trying to do further work after terminating the message-queueing system.
     /// </summary>
@@ -292,6 +259,8 @@ namespace NetMQ
         {
         }
 
+        /// <summary>
+        /// </summary>
         public TerminatingException([CanBeNull] string message)
             : this(null, message)
         {
@@ -353,7 +322,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// FaultException is a NetMQException that is used within within the message-queueing system to signal general fault conditions.
+    /// FaultException is a NetMQException that is used within the message-queueing system to signal general fault conditions.
     /// </summary>
     [Serializable]
     public class FaultException : NetMQException
@@ -434,7 +403,7 @@ namespace NetMQ
     }
 
     /// <summary>
-    /// HostUnreachableException is an Exception that is used within within the message-queueing system
+    /// HostUnreachableException is an Exception that is used within the message-queueing system
     /// to signal failures to communicate with a host.
     /// </summary>
     [Serializable]

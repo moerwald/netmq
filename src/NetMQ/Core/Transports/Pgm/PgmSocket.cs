@@ -32,7 +32,7 @@ namespace NetMQ.Core.Transports.Pgm
     /// This is only supported on Windows when Microsoft Message Queueing (MSMQ) is installed.
     /// See RFC 3208.
     /// </summary>
-    internal sealed class PgmSocket
+    internal sealed class PgmSocket : IDisposable
     {
         public const int ProtocolTypeNumber = 113;
         public const ProtocolType PgmProtocolType = (ProtocolType)113;
@@ -129,7 +129,14 @@ namespace NetMQ.Core.Transports.Pgm
         internal void InitOptions()
         {
             // Enable gigabit on the socket
-            Handle.SetSocketOption(PgmLevel, EnableGigabitOption, BitConverter.GetBytes((uint)1));
+            try
+            {
+                Handle.SetSocketOption(PgmLevel, EnableGigabitOption, BitConverter.GetBytes((uint)1));
+            }
+            catch (Exception)
+            {
+                // If gigabit is not supported don't throw.
+            }
 
             // set the receive buffer size for receiver and listener
             if (m_options.ReceiveBuffer > 0 && (m_pgmSocketType == PgmSocketType.Receiver || m_pgmSocketType == PgmSocketType.Listener))
@@ -201,6 +208,11 @@ namespace NetMQ.Core.Transports.Pgm
             sb.Append(", m_options=");
             sb.Append(m_options).Append(")");
             return sb.ToString();
+        }
+
+        public void Dispose()
+        {
+            Handle.Dispose();
         }
     }
 }

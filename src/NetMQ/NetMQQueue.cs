@@ -6,18 +6,24 @@ using System.Collections;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// </summary>
     public sealed class NetMQQueueEventArgs<T> : EventArgs
     {
+        /// <summary>
+        /// </summary>
         public NetMQQueueEventArgs(NetMQQueue<T> queue)
         {
             Queue = queue;
         }
 
+        /// <summary>
+        /// </summary>
         public NetMQQueue<T> Queue { get; private set; }
     }
 
     /// <summary>
-    /// Multi producer singler consumer queue which you can poll on with a Poller.
+    /// Multi producer single consumer queue which you can poll on with a Poller.
     /// </summary>
     /// <typeparam name="T">Type of the item in queue</typeparam>
     public sealed class NetMQQueue<T> : IDisposable, ISocketPollable, IEnumerable<T>
@@ -129,6 +135,8 @@ namespace NetMQ
 
         #region IENumerator methods
 
+        /// <summary>
+        /// </summary>
         public IEnumerator<T> GetEnumerator()
         {
             return m_queue.GetEnumerator();

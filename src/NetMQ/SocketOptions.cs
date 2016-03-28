@@ -38,16 +38,6 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Unused.
-        /// </summary>
-        [Obsolete("This property doesn't effect NetMQ anymore")]
-        public bool CopyMessages
-        {
-            get { return false; }
-            set { }
-        }
-
-        /// <summary>
         /// Get or set unique identity of the socket, from a message-queueing router's perspective.
         /// This is a byte-array of at most 255 bytes.
         /// </summary>
@@ -86,17 +76,6 @@ namespace NetMQ
         {
             get { return m_socket.GetSocketOption(ZmqSocketOption.SendBuffer); }
             set { m_socket.SetSocketOption(ZmqSocketOption.SendBuffer, value); }
-        }
-
-        /// <summary>
-        /// Get or set the size of the receive buffer for the specified socket.
-        /// A value of zero means that the OS default is in effect.
-        /// </summary>
-        [Obsolete("Use ReceiveBuffer instead")]
-        public int ReceivevBuffer
-        {
-            get { return ReceiveBuffer; }
-            set { ReceiveBuffer = value; }
         }
 
         /// <summary>
@@ -188,7 +167,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Get or set the upper limit to to the size for inbound messages.
+        /// Get or set the upper limit to the size for inbound messages.
         /// If a peer sends a message larger than this it is disconnected.
         /// The default value is -1, which means no limit.
         /// </summary>
@@ -223,6 +202,30 @@ namespace NetMQ
         }
 
         /// <summary>
+        /// The low-water mark for message transmission.
+        /// This is the number of messages that should be processed before transmission is
+        /// unblocked (in case it was blocked by reaching high-watermark). The default value is
+        /// calculated using relevant high-watermark (HWM): HWM > 2048 ? HWM - 1024 : (HWM + 1) / 2
+        /// </summary>
+        public int SendLowWatermark
+        {
+            get { return m_socket.GetSocketOption(ZmqSocketOption.SendLowWatermark); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.SendLowWatermark, value); }
+        }
+
+        /// <summary>
+        /// The low-water mark for message reception.
+        /// This is the number of messages that should be processed  before reception is
+        /// unblocked (in case it was blocked by reaching high-watermark). The default value is
+        /// calculated using relevant high-watermark (HWM): HWM > 2048 ? HWM - 1024 : (HWM + 1) / 2
+        /// </summary>
+        public int ReceiveLowWatermark
+        {
+            get { return m_socket.GetSocketOption(ZmqSocketOption.ReceiveLowWatermark); }
+            set { m_socket.SetSocketOption(ZmqSocketOption.ReceiveLowWatermark, value); }
+        }
+
+        /// <summary>
         /// Get or set the time-to-live (maximum number of hops) that outbound multicast packets
         /// are allowed to propagate.
         /// The default value of 1 means that the multicast packets don't leave the local network.
@@ -231,29 +234,6 @@ namespace NetMQ
         {
             get { return m_socket.GetSocketOption(ZmqSocketOption.MulticastHops); }
             set { m_socket.SetSocketOption(ZmqSocketOption.MulticastHops, value); }
-        }
-
-        /// <summary>
-        /// Get or set the amount of time after which a synchronous receive call will time out.
-        /// </summary>
-        [Obsolete("Pass a TimeSpan value directly to socket receive methods instead.")]
-        public TimeSpan ReceiveTimeout
-        {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.ReceiveTimeout); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.ReceiveTimeout, value); }
-        }
-
-        /// <summary>
-        /// Specifies the amount of time after which a synchronous send call will time out.
-        /// A value of 0 means Send will return immediately, with a EAGAIN error if the message cannot be sent.
-        /// A value of -1 means to block until the message is sent.
-        /// TODO: May need to update this explanation.
-        /// </summary>
-        [Obsolete("Pass a TimeSpan value directly to socket send methods instead.")]
-        public TimeSpan SendTimeout
-        {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.SendTimeout); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.SendTimeout, value); }
         }
 
         /// <summary>
@@ -270,17 +250,6 @@ namespace NetMQ
         /// Get the last endpoint bound for TCP and IPC transports.
         /// The returned value will be a string in the form of a ZMQ DSN.
         /// </summary>
-        [Obsolete("Use LastEndpoint instead")]
-        [CanBeNull]
-        public string GetLastEndpoint
-        {
-            get { return LastEndpoint; }
-        }
-
-        /// <summary>
-        /// Get the last endpoint bound for TCP and IPC transports.
-        /// The returned value will be a string in the form of a ZMQ DSN.
-        /// </summary>
         /// <remarks>
         /// If the TCP host is ANY, indicated by a *, then the returned address
         /// will be 0.0.0.0 (for IPv4).
@@ -291,6 +260,11 @@ namespace NetMQ
             get { return m_socket.GetSocketOptionX<string>(ZmqSocketOption.LastEndpoint); }
         }
 
+        /// <summary>
+        /// Set the RouterSocket behavior when an unroutable message is encountered.
+        /// A value of false is the default and discards the message silently when it cannot be routed.
+        /// A value of true causes throw of HostUnreachableException if the message cannot be routed.
+        /// </summary>       
         public bool RouterMandatory
         {
             set { m_socket.SetSocketOption(ZmqSocketOption.RouterMandatory, value); }
@@ -314,15 +288,6 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOption.TcpKeepalive, value ? 1 : 0); }
             // TODO: What about the value -1, which means use the OS default?  jh
             // See  http://api.zeromq.org/3-2:zmq-getsockopt
-        }
-
-        /// <summary>
-        /// Unused
-        /// </summary>
-        [Obsolete("This option is not supported and has no effect")]
-        public int TcpKeepaliveCnt
-        {
-            set { /* m_socket.SetSocketOption(ZmqSocketOption.TcpKeepaliveCnt, value); */ }
         }
 
         /// <summary>
@@ -354,12 +319,6 @@ namespace NetMQ
             set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIntvl, value); }
         }
 
-        [Obsolete("This feature has not been implemented and will be removed.")]
-        public string TcpAcceptFilter
-        {
-            set { }
-        }
-
         /// <summary>
         /// Get or set the attach-on-connect value.
         /// If set to true, this will delay the attachment of a pipe on connect until
@@ -384,19 +343,31 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOption.XpubVerbose, value); }
         }
 
-
         /// <summary>
         /// This applies only to publisher sockets.
         /// Set whether to support broadcast functionality
         /// </summary>
-        public bool XPubBroadcast {
+        public bool XPubBroadcast
+        {
             set { m_socket.SetSocketOption(ZmqSocketOption.XPublisherBroadcast, value); }
         }
 
-
+        /// <summary>
+        /// This applies only to router sockets.
+        /// Set whether RouterSocket allows non-zmq tcp connects.
+        /// If true, router socket accepts non-zmq tcp connections
+        /// </summary>
         public bool RouterRawSocket
         {
             set { m_socket.SetSocketOption(ZmqSocketOption.RouterRawSocket, value); }
+        }
+
+        /// <summary>
+        /// When enabled new router connections with same identity take over old ones
+        /// </summary>
+        public bool RouterHandover
+        {
+            set { m_socket.SetSocketOption(ZmqSocketOption.RouterHandover, value); }
         }
 
         /// <summary>
@@ -408,11 +379,15 @@ namespace NetMQ
             set { m_socket.SetSocketOption(ZmqSocketOption.Endian, value); }
         }
 
+        /// <summary>
+        /// </summary>
         public bool ManualPublisher
         {
             set { m_socket.SetSocketOption(ZmqSocketOption.XPublisherManual, value); }
         }
 
+        /// <summary>
+        /// </summary>
         public bool DisableTimeWait
         {
             get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOption.DisableTimeWait); }

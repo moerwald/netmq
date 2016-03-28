@@ -3,6 +3,8 @@ using NetMQ.Core;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// </summary>
     public static class NetMQConfig
     {
         private static TimeSpan s_linger;
@@ -17,7 +19,7 @@ namespace NetMQ
             s_settingsSync = new object();
             s_linger = TimeSpan.Zero;
 
-            // Register to destory the context when application exit
+            // Register to destroy the context when application exit
             AppDomain.CurrentDomain.ProcessExit += OnCurrentDomainOnProcessExit;
         }
 

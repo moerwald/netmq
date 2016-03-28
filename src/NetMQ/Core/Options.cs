@@ -3,19 +3,19 @@
     Copyright (c) 2009-2011 250bpm s.r.o.
     Copyright (c) 2011 VMware, Inc.
     Copyright (c) 2007-2015 Other contributors as noted in the AUTHORS file
-        
+
     This file is part of 0MQ.
-            
+
     0MQ is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
-            
+
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
-        
+
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -45,13 +45,11 @@ namespace NetMQ.Core
             MulticastHops = 1;
             Rate = 100;
             ReceiveHighWatermark = 1000;
-#pragma warning disable 618
-            // This is obsolete, but it is still used. Disable compiler warning.
-            ReceiveTimeout = -1;
-#pragma warning restore 618
+            ReceiveLowWatermark = 0;
             ReconnectIvl = 100;
             RecoveryIvl = 10000;
             SendHighWatermark = 1000;
+            SendLowWatermark = 0;
             SendTimeout = -1;
             SocketType = ZmqSocketType.None;
             TcpKeepalive = -1;
@@ -143,16 +141,6 @@ namespace NetMQ.Core
         public long MaxMessageSize { get; set; }
 
         /// <summary>
-        /// Get or set the maximum size of message to handle.
-        /// </summary>
-        [Obsolete("Use MaxMessageSize")]
-        public long Maxmsgsize
-        {
-            get { return this.MaxMessageSize; }
-            set { this.MaxMessageSize = value; }
-        }
-
-        /// <summary>
         /// Sets the time-to-live field in every multicast packet sent.
         /// The default value is 1.
         /// </summary>
@@ -166,6 +154,7 @@ namespace NetMQ.Core
         /// <summary>
         /// If true, router socket accepts non-zmq tcp connections
         /// The default value is false, except the Stream ctor initialises this to true.
+        /// Setting this to true changes RecvIdentity to false.
         /// </summary>
         public bool RawSocket { get; set; }
 
@@ -217,17 +206,20 @@ namespace NetMQ.Core
         public int ReceiveHighWatermark { get; set; }
 
         /// <summary>
+        /// The low-water mark for message transmission.
+        /// </summary>
+        public int SendLowWatermark { get; set; }
+
+        /// <summary>
+        /// The low-water mark for message reception.
+        /// </summary>
+        public int ReceiveLowWatermark { get; set; }
+
+        /// <summary>
         /// Get or set the timeout for send operations for this socket.
         /// The default value is -1, which means no timeout.
         /// </summary>
         public int SendTimeout { get; set; }
-
-        /// <summary>
-        /// Get or set the timeout for receive operations for this socket.
-        /// The default value is -1, which means no timeout.
-        /// </summary>
-        [Obsolete("Pass a TimeSpan value directly to socket receive methods instead.")]
-        public int ReceiveTimeout { get; set; }
 
         /// <summary>
         /// Get or set the ID of the socket.
@@ -287,6 +279,14 @@ namespace NetMQ.Core
 
                 case ZmqSocketOption.ReceiveHighWatermark:
                     ReceiveHighWatermark = (int)optionValue;
+                    break;
+
+                case ZmqSocketOption.SendLowWatermark:
+                    SendLowWatermark = (int)optionValue;
+                    break;
+
+                case ZmqSocketOption.ReceiveLowWatermark:
+                    ReceiveLowWatermark = (int)optionValue;
                     break;
 
                 case ZmqSocketOption.Affinity:
@@ -356,13 +356,6 @@ namespace NetMQ.Core
                     MulticastHops = (int)optionValue;
                     break;
 
-// disable warning about obsolete values
-#pragma warning disable 618
-                case ZmqSocketOption.ReceiveTimeout:
-                    ReceiveTimeout = (int)optionValue;
-#pragma warning restore 618
-                    break;
-
                 case ZmqSocketOption.SendTimeout:
                     SendTimeout = (int)optionValue;
                     break;
@@ -419,6 +412,12 @@ namespace NetMQ.Core
                 case ZmqSocketOption.ReceiveHighWatermark:
                     return ReceiveHighWatermark;
 
+                case ZmqSocketOption.SendLowWatermark:
+                    return SendLowWatermark;
+
+                case ZmqSocketOption.ReceiveLowWatermark:
+                    return ReceiveLowWatermark;
+
                 case ZmqSocketOption.Affinity:
                     return Affinity;
 
@@ -457,11 +456,6 @@ namespace NetMQ.Core
 
                 case ZmqSocketOption.MulticastHops:
                     return MulticastHops;
-
-#pragma warning disable 618
-                case ZmqSocketOption.ReceiveTimeout:
-                    return ReceiveTimeout;
-#pragma warning restore 618
 
                 case ZmqSocketOption.SendTimeout:
                     return SendTimeout;

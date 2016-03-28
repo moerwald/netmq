@@ -132,7 +132,7 @@ namespace NetMQ.Core
         ReconnectIvlMax = 21,
 
         /// <summary>
-        /// The upper limit to to the size for inbound messages.
+        /// The upper limit to the size for inbound messages.
         /// -1 (the default value) means no limit.
         /// </summary>
         /// <remarks>
@@ -160,12 +160,6 @@ namespace NetMQ.Core
         MulticastHops = 25,
 
         /// <summary>
-        /// Specifies the amount of time after which a synchronous receive call will time out.
-        /// </summary>
-        [Obsolete("Pass a TimeSpan value directly to socket receive methods instead.")]
-        ReceiveTimeout = 27,
-
-        /// <summary>
         /// Specifies the amount of time after which a synchronous send call will time out.
         /// A value of 0 means Send will return immediately, with a EAGAIN error if the message cannot be sent.
         /// -1 means to block until the message is sent.
@@ -191,6 +185,11 @@ namespace NetMQ.Core
         /// </remarks>
         LastEndpoint = 32,
 
+        /// <summary>
+        /// Sets the RouterSocket behavior when an unroutable message is encountered.
+        /// A value of 0 is the default and discards the message silently when it cannot be routed.
+        /// A value of 1 returns an EHOSTUNREACH error code if the message cannot be routed.
+        /// </summary>
         RouterMandatory = 33,
         
         /// <summary>
@@ -236,7 +235,10 @@ namespace NetMQ.Core
         /// The default is false.
         /// </summary>
         XpubVerbose = 40,
-        
+
+        /// <summary>
+        /// If true, router socket accepts non-zmq tcp connections
+        /// </summary>
         RouterRawSocket = 41,
 
         XPublisherManual = 42,
@@ -254,6 +256,25 @@ namespace NetMQ.Core
         /// If true, enable broadcast option on XPublishers
         /// </summary>
         XPublisherBroadcast = 45,
+
+        /// <summary>
+        /// The low-water mark for message transmission. This is the number of messages that should be processed
+        /// before transmission is unblocked (in case it was blocked by reaching high-watermark). The default value is 
+        /// calculated using relevant high-watermark (HWM): HWM > 2048 ? HWM - 1024 : (HWM + 1) / 2
+        /// </summary>
+        SendLowWatermark = 46,
+
+        /// <summary>
+        /// The low-water mark for message reception. This is the number of messages that should be processed 
+        /// before reception is unblocked (in case it was blocked by reaching high-watermark). The default value is 
+        /// calculated using relevant high-watermark (HWM): HWM > 2048 ? HWM - 1024 : (HWM + 1) / 2
+        /// </summary>
+        ReceiveLowWatermark = 47,
+
+        /// <summary>
+        /// When enabled new router connections with same identity take over old ones
+        /// </summary>
+        RouterHandover = 48,
 
         /// <summary>
         /// Specifies the byte-order: big-endian, vs little-endian.

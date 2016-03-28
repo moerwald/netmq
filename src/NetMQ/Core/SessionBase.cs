@@ -411,7 +411,7 @@ namespace NetMQ.Core
         }
 
         /// <summary>
-        /// Process the Plug-request by setting this SessionBase as teh handler for the io-object
+        /// Process the Plug-request by setting this SessionBase as the handler for the io-object
         /// and starting connecting (without waiting).
         /// </summary>
         protected override void ProcessPlug()
@@ -435,8 +435,9 @@ namespace NetMQ.Core
             {
                 ZObject[] parents = { this, m_socket };
                 int[] highWaterMarks = { m_options.ReceiveHighWatermark, m_options.SendHighWatermark };
+                int[] lowWaterMarks = { m_options.ReceiveLowWatermark, m_options.SendLowWatermark };
                 bool[] delays = { m_options.DelayOnClose, m_options.DelayOnDisconnect };
-                Pipe[] pipes = Pipe.PipePair(parents, highWaterMarks, delays);
+                Pipe[] pipes = Pipe.PipePair(parents, highWaterMarks, lowWaterMarks, delays);
 
                 // Plug the local end of the pipe.
                 pipes[0].SetEventSink(this);
@@ -606,7 +607,7 @@ namespace NetMQ.Core
                 case Address.PgmProtocol:
                 case Address.EpgmProtocol:
                 {
-                    var pgmSender = new PgmSender(m_ioThread, m_options, m_addr);
+                    var pgmSender = new PgmSender(m_ioThread, m_options, m_addr, wait);
                     pgmSender.Init((PgmAddress)m_addr.Resolved);
                     SendAttach(this, pgmSender);
                     return;
